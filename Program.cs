@@ -21,6 +21,12 @@ namespace WPF_Hide_Names
             "Class", "Name", "Command", "Binding", "Path", "String", "Main", "App", "Application",
             "System", "Windows", "Controls", "Data", "Visibility", "True", "False", "Null"
         };
+
+        static HashSet<string> methodBlacklist = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+{
+    "Main", "InitializeComponent", "OnStartup", "OnExit", "CanExecute", "Execute",
+    "Convert", "ConvertBack", "Initialize", "OnPropertyChanged", "RefreshUI"
+};
         static void Main(string[] args)
         {
             try
@@ -76,7 +82,12 @@ namespace WPF_Hide_Names
                         ChangeLocalString(filesToProcess);
                         Console.WriteLine($"Collected {globalRenameRules.Count} unique global variables.");
 
-                        // 4. ВТОРОЙ ПРОХОД: Применяем изменения и перезаписываем файлы
+                        // 4. ВТОРОЙ ПРОХОД: задаём глобальным переменным хэш имена
+                        Console.WriteLine("\n[4/5] Analyzing files and collecting 'methods' variables...");
+                        ChangeGlobalMethods(filesToProcess);
+                        Console.WriteLine($"Collected {globalRenameRules.Count} unique global variables.");
+
+                        // 5. ТРЕТИЙ ПРОХОД: Применяем изменения и перезаписываем файлы
                         //Console.WriteLine("\n[4/4] Applying obfuscation and saving files...");
                         //ApplySafeObfuscation(filesToProcess);
 
@@ -184,12 +195,12 @@ namespace WPF_Hide_Names
                         close += closeInLine;
 
 
-                        string stringPattern = @"\bstring\s+([a-zA-Z_][a-zA-Z0-9_]*)\b(?!\s*\()";
-                        MatchCollection matches = Regex.Matches(line, stringPattern);
+                        string variablePattern = @"\b(string|int)\s+([a-zA-Z_][a-zA-Z0-9_]*)\b(?!\s*\()";
+                        MatchCollection matches = Regex.Matches(line, variablePattern);
 
                         foreach (Match match in matches)
                         {
-                            string variableName = match.Groups[1].Value;
+                            string variableName = match.Groups[2].Value;
 
                             if (!localRenameRules.ContainsKey(variableName))
                             {
@@ -197,7 +208,6 @@ namespace WPF_Hide_Names
 
                                 localRenameRules[variableName] = hexName;
 
-                                Console.WriteLine($"Mapped: {variableName} -> {hexName}");
                             }
                         }
 
@@ -243,6 +253,118 @@ namespace WPF_Hide_Names
 
         }
 
+        static void ChangeGlobalMethods(List<string> files)
+        {
+            // Глобальный словарь для методов: [Старое имя] -> [Новое Hex-имя]
+            var methodRenameRules = new Dictionary<string, string>();
+
+            // Регулярка ищет объявление метода: модификатор -> тип возвращаемого значения -> имя -> открывающая скобка
+            // Примеры: public void MyMethod(, private static string GetId(
+            // Защита (?!\s*if|\s*switch|\s*while|\s*using) исключает ложные срабатывания на ключевые слова
+            string methodDeclarationPattern = @"\b(public|private|internal|protected)\s+(static\s+|virtual\s+|override\s+|async\s+)?([a-zA-Z0-9_<>]+\s+)([a-zA-Z_][a-zA-Z0-9_]*)\s*\((?!\s*if|\s*switch|\s*while|\s*using)";
+            Regex declRegex = new Regex(methodDeclarationPattern, RegexOptions.Compiled);
+
+            // --- ПРОХОД 1: Сбор всех методов в проекте ---
+            foreach (var file in files.Where(f => f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)))
+            {
+                // Читаем файл (здесь ты можешь использовать уже очищенные от комментариев строки)
+                string[] lines = File.ReadAllLines(file);
+
+                foreach (var line in lines)
+                {
+                    string trimmed = line.Trim();
+
+                    // Пропускаем директивы usings и namespaces
+                    if (trimmed.StartsWith("using ", StringComparison.Ordinal) ||
+                        trimmed.StartsWith("namespace ", StringComparison.Ordinal))
+                        continue;
+                    Match match = declRegex.Match(line);
+                    if (match.Success)
+                    {
+                        string methodName = match.Groups[4].Value; // Наше имя метода
+
+                        // 1. ПРОВЕРКА: Пропускаем, если метод в черном списке
+                        if (methodBlacklist.Contains(methodName))
+                            continue;
+
+                        // 2. ПРОВЕРКА: Пропускаем обработчики событий WPF окон (всё, что заканчивается на _Click, _KeyDown, _Loaded и т.д.)
+                        if (methodName.Contains("_Click") ||
+                            methodName.Contains("_Mouse") ||
+                            methodName.Contains("_Key") ||
+                            methodName.Contains("_Loaded"))
+                        {
+                            continue;
+                        }
+                        if (line.Contains("object sender"))
+                        {
+                            continue;
+                        }
+
+                        // 3. Дополнительная страховка по суффиксам (на случай, если sender переименован)
+                        if (methodName.Contains("_Click") || methodName.Contains("_Mouse") ||
+                            methodName.Contains("_Key") || methodName.Contains("_Loaded"))
+                        {
+                            continue;
+                        }
+                        // Только если метод прошел проверки — добавляем в словарь правил
+                        if (!methodRenameRules.ContainsKey(methodName))
+                        {
+                            string hexName = GenerateRandomHexName();
+                            methodRenameRules[methodName] = hexName;
+                            Console.WriteLine($"[Method Collected - SAFE] {methodName} -> {hexName}");
+                        }
+                    }
+                }
+            }
+
+            // --- ПРОХОД 2: Тотальная замена вызовов методов по всему проекту ---
+            if (methodRenameRules.Count > 0)
+            {
+                foreach (var file in files)
+                {
+                    string content = File.ReadAllText(file);
+                    bool isModified = false;
+
+                    // Обработка C# файлов
+                    if (file.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
+                    {
+                        foreach (var rule in methodRenameRules)
+                        {
+                            // Защита (?<!\.) тут НЕ НУЖНА, так как методы часто вызываются через точку (например, obj.MyMethod())
+                            // Но нам нужны четкие границы слова (\b)
+                            string methodPattern = @"\b" + Regex.Escape(rule.Key) + @"\b";
+
+                            if (Regex.IsMatch(content, methodPattern))
+                            {
+                                content = Regex.Replace(content, methodPattern, rule.Value);
+                                isModified = true;
+                            }
+                        }
+                    }
+                    // Обработка XAML (на случай если методы привязаны через Event'ы, например Click="Button_Click")
+                    else if (file.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
+                    {
+                        foreach (var rule in methodRenameRules)
+                        {
+                            string methodPattern = @"\b" + Regex.Escape(rule.Key) + @"\b";
+
+                            if (Regex.IsMatch(content, methodPattern))
+                            {
+                                content = Regex.Replace(content, methodPattern, rule.Value);
+                                isModified = true;
+                            }
+                        }
+                    }
+
+                    // Перезаписываем файл, если были изменения
+                    if (isModified)
+                    {
+                        File.WriteAllText(file, content);
+                        Console.WriteLine($"[Methods Updated] {Path.GetFileName(file)}");
+                    }
+                }
+            }
+        }
 
 
         static void CollectGlobalStringVariables(List<string> files)
