@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace WPF_Hide_Names
@@ -27,6 +29,169 @@ namespace WPF_Hide_Names
     "Main", "InitializeComponent", "OnStartup", "OnExit", "CanExecute", "Execute",
     "Convert", "ConvertBack", "Initialize", "OnPropertyChanged", "RefreshUI"
 };
+
+        class AdvancedDeadCodeGenerator
+        {
+            private static readonly Random _rnd = new Random();
+
+            public static string GenerateAdvancedDeadCode()
+            {
+                // Случайно выбираем один из 4 стилей генерации кода
+                int style = _rnd.Next(1, 5);
+
+                switch (style)
+                {
+                    case 1: return GenerateNetworkFallbackStyle();
+                    case 2: return GenerateCryptoValidationStyle();
+                    case 3: return GenerateConfigParsingStyle();
+                    case 4: return GenerateHardwareMetricsStyle();
+                    default: return string.Empty;
+                }
+            }
+
+            // --- СТИЛЬ 1: Имитация сетевого тайм-аута и резервного сервера ---
+            private static string GenerateNetworkFallbackStyle()
+            {
+                string vSession = $"_0x{_rnd.Next(1000, 9999):x}";
+                string vRetry = $"_0x{_rnd.Next(1000, 9999):x}";
+                int fakePort = _rnd.Next(8000, 9000);
+
+                var sb = new StringBuilder();
+                sb.AppendLine($"\t\t\t\t// Проверка доступности резервного узла");
+                // Условие всегда false, так как день недели не может быть 8-м
+                sb.AppendLine($"\t\t\t\tif (DateTime.Now.DayOfWeek.ToString() == \"NeverDay\")");
+                sb.AppendLine("\t\t\t\t{");
+                sb.AppendLine($"\t\t\t\t\tstring {vSession} = \"fallback_session_id_\" + Guid.NewGuid().ToString();");
+                sb.AppendLine($"\t\t\t\t\tint {vRetry} = ({_rnd.Next(100, 500)} * 3) / (DateTime.Now.Hour + 1);");
+                sb.AppendLine($"\t\t\t\t\tif ({vRetry} > {fakePort}) {vSession} = \"disabled\";");
+                sb.AppendLine("\t\t\t\t}");
+                return sb.ToString();
+            }
+
+            // --- СТИЛЬ 2: Имитация проверки криптографического токена ---
+            private static string GenerateCryptoValidationStyle()
+            {
+                string vBuffer = $"_0x{_rnd.Next(1000, 9999):x}";
+                string vChecksum = $"_0x{_rnd.Next(1000, 9999):x}";
+
+                var sb = new StringBuilder();
+                sb.AppendLine($"\t\t\t\t// Валидация контрольной суммы пакета метаданных");
+                // Условие всегда false, так как длина Хэша Guid всегда 36 символов
+                sb.AppendLine($"\t\t\t\tif (Guid.NewGuid().ToString().Length < 10)");
+                sb.AppendLine("\t\t\t\t{");
+                sb.AppendLine($"\t\t\t\t\tlong {vChecksum} = 0x{_rnd.Next(10000, 99999):X}L;");
+                sb.AppendLine($"\t\t\t\t\tbyte[] {vBuffer} = BitConverter.GetBytes({vChecksum});");
+                sb.AppendLine($"\t\t\t\t\tfor (int i = 0; i < {vBuffer}.Length; i++) {{ {vChecksum} ^= ({vBuffer}[i] << 2); }}");
+                sb.AppendLine("\t\t\t\t}");
+                return sb.ToString();
+            }
+
+            // --- СТИЛЬ 3: Имитация парсинга фейковой конфигурации ---
+            private static string GenerateConfigParsingStyle()
+            {
+                string vRaw = $"_0x{_rnd.Next(1000, 9999):x}";
+                string vCount = $"_0x{_rnd.Next(1000, 9999):x}";
+
+                var sb = new StringBuilder();
+                sb.AppendLine($"\t\t\t\t// Чтение локального кэша кастомизации окружения");
+                // Условие всегда false, так как Environment.Version никогда не пустой
+                sb.AppendLine($"\t\t\t\tif (Environment.Version.ToString() == string.Empty)");
+                sb.AppendLine("\t\t\t\t{");
+                sb.AppendLine($"\t\t\t\t\tstring {vRaw} = \"node_count={_rnd.Next(10, 100)};mode=silent;theme=dark;\";");
+                sb.AppendLine($"\t\t\t\t\tint {vCount} = {vRaw}.Split(';').Length;");
+                sb.AppendLine($"\t\t\t\t\t{vRaw} = string.Concat({vRaw}, \"_processed_\", {vCount});");
+                sb.AppendLine("\t\t\t\t}");
+                return sb.ToString();
+            }
+
+            // --- СТИЛЬ 4: Имитация вычисления математических метрик системы ---
+            private static string GenerateHardwareMetricsStyle()
+            {
+                string vFactor = $"_0x{_rnd.Next(1000, 9999):x}";
+                string vResult = $"_0x{_rnd.Next(1000, 9999):x}";
+
+                var sb = new StringBuilder();
+                sb.AppendLine($"\t\t\t\t// Расчет динамического коэффициента масштабирования UI");
+                // Условие всегда false, так как косинус 180 градусов (-1) никогда не будет равен 5
+                sb.AppendLine($"\t\t\t\tif (Math.Cos(Math.PI) > 5.0)");
+                sb.AppendLine("\t\t\t\t{");
+                sb.AppendLine($"\t\t\t\t\tdouble {vFactor} = Math.Sqrt({_rnd.Next(50, 500)}) / {Environment.ProcessorCount};");
+                sb.AppendLine($"\t\t\t\t\tdouble {vResult} = Math.Pow({vFactor}, 2) * Math.Log10({_rnd.Next(100, 1000)});");
+                sb.AppendLine("\t\t\t\t}");
+                return sb.ToString();
+            }
+            public static string GenerateChaosDeadCode()
+            {
+                var sb = new StringBuilder();
+
+                // Генерируем уникальные имена фейковых переменных
+                string v1 = "_0x" + _rnd.Next(1000, 9999).ToString("x");
+                string v2 = "_0x" + _rnd.Next(1000, 9999).ToString("x");
+                string v3 = "_0x" + _rnd.Next(1000, 9999).ToString("x");
+
+                // Генерируем уникальное ложное условие
+                string falseCondition = GenerateRandomFalseCondition();
+
+                sb.AppendLine($"\t\t\t\tif ({falseCondition})");
+                sb.AppendLine("\t\t\t\t{");
+
+                // Случайный выбор внутренней логики
+                int logicType = _rnd.Next(1, 4);
+                if (logicType == 1)
+                {
+                    // Математический хаос
+                    sb.AppendLine($"\t\t\t\t\tdouble {v1} = Math.Sqrt({_rnd.Next(10, 100)});");
+                    sb.AppendLine($"\t\t\t\t\tint {v2} = (int){v1} * {_rnd.Next(2, 10)};");
+                    sb.AppendLine($"\t\t\t\t\t{v1} = Math.Pow({v2}, {_rnd.Next(2, 4)});");
+                }
+                else if (logicType == 2)
+                {
+                    // Строковый хаос
+                    sb.AppendLine($"\t\t\t\t\tstring {v1} = \"init_\" + {_rnd.Next(100, 999)};");
+                    sb.AppendLine($"\t\t\t\t\tstring {v2} = {v1}.GetHashCode().ToString();");
+                    sb.AppendLine($"\t\t\t\t\t{v1} = string.Concat({v1}, \"_\", {v2});");
+                }
+                else
+                {
+                    // Смешанный хаос с циклом
+                    sb.AppendLine($"\t\t\t\t\tint {v1} = {_rnd.Next(5, 20)};");
+                    sb.AppendLine($"\t\t\t\t\tfor (int {v2} = 0; {v2} < {v1}; {v2}++)");
+                    sb.AppendLine("\t\t\t\t\t{");
+                    sb.AppendLine($"\t\t\t\t\t\t{v1} += {_rnd.Next(1, 5)};");
+                    sb.AppendLine("\t\t\t\t\t}");
+                }
+
+                sb.AppendLine("\t\t\t\t}");
+                return sb.ToString();
+            }
+
+            private static string GenerateRandomFalseCondition()
+            {
+                int num1 = _rnd.Next(10, 100);
+                int num2 = _rnd.Next(100, 500);
+                int style = _rnd.Next(1, 5);
+
+                switch (style)
+                {
+                    case 1:
+                        // Пример: (53 * 2) % 2 == 1 -> Всегда false (четное число)
+                        return $"({num1} * 2) % 2 == 1";
+                    case 2:
+                        // Пример: Math.Abs(-241) < 0 -> Всегда false
+                        return $"Math.Abs(-{num2}) < 0";
+                    case 3:
+                        // Пример: Math.Sin(42) > 2.0 -> Синус не бывает больше 1. Всегда false
+                        return $"Math.Sin({num1}) > 2.0";
+                    case 4:
+                        // Пример: "id_421".Length == 0 -> Всегда false
+                        return $"\"id_{num2}\".Length == 0";
+                    default:
+                        return "1 == 2";
+                }
+            }
+        }
+
+        
         static void Main(string[] args)
         {
             try
@@ -79,17 +244,16 @@ namespace WPF_Hide_Names
 
                         // 3. ПЕРВЫЙ ПРОХОД: задаём локлаьным переменным хэш имена
                         Console.WriteLine("\n[3/5] Analyzing files and collecting 'string' variables...");
-                        ChangeLocalString(filesToProcess);
-                        Console.WriteLine($"Collected {globalRenameRules.Count} unique global variables.");
+                        //ChangeLocalString(filesToProcess);
 
                         // 4. ВТОРОЙ ПРОХОД: задаём глобальным переменным хэш имена
                         Console.WriteLine("\n[4/5] Analyzing files and collecting 'methods' variables...");
-                        ChangeGlobalMethods(filesToProcess);
-                        Console.WriteLine($"Collected {globalRenameRules.Count} unique global variables.");
+                        //ChangeGlobalMethods(filesToProcess);
 
+                        
                         // 5. ТРЕТИЙ ПРОХОД: Применяем изменения и перезаписываем файлы
-                        //Console.WriteLine("\n[4/4] Applying obfuscation and saving files...");
-                        //ApplySafeObfuscation(filesToProcess);
+                        Console.WriteLine("\n[5/5] Change bindings name");
+                        ChangePrivateMembers(filesToProcess);
 
                         Console.ForegroundColor = ConsoleColor.Green;
                         Console.WriteLine("\nSuccess! Obfuscation step completed. You can check the files now.");
@@ -365,6 +529,122 @@ namespace WPF_Hide_Names
                 }
             }
         }
+
+        static void ChangePrivateMembers(List<string> files)
+        {
+            // 1. Регулярка для приватных МЕТОДОВ: private -> тип -> имя -> скобка (
+            string methodPattern = @"\bprivate\s+(static\s+|async\s+)?([a-zA-Z0-9_<>]+\s+)([a-zA-Z_][a-zA-Z0-9_]*)\s*\(";
+            Regex methodRegex = new Regex(methodPattern, RegexOptions.Compiled);
+
+            // 2. Регулярка для приватных ПЕРЕМЕННЫХ/ПОЛЕЙ: private -> тип -> имя -> точка с запятой ; (или знак =)
+            string fieldPattern = @"\bprivate\s+(static\s+|readonly\s+|const\s+)?([a-zA-Z0-9_<>]+\s+)([a-zA-Z_][a-zA-Z0-9_]*)\s*(;|=)";
+            Regex fieldRegex = new Regex(fieldPattern, RegexOptions.Compiled);
+
+            foreach (var file in files.Where(f => f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)))
+            {
+                string[] lines = File.ReadAllLines(file);
+                bool isModified = false;
+
+                // Локальный словарь для ВСЕХ приватных членов текущего файла
+                var privateRenameRules = new Dictionary<string, string>();
+
+                // --- ШАГ 1: Построчный сбор приватных методов и переменных ---
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    string trimmed = lines[i].Trim();
+
+                    // Пропускаем системные директивы usings и namespaces
+                    if (trimmed.StartsWith("using ", StringComparison.Ordinal) ||
+                        trimmed.StartsWith("namespace ", StringComparison.Ordinal))
+                        continue;
+
+                    // Сначала проверяем на приватный метод
+                    Match methodMatch = methodRegex.Match(lines[i]);
+                    if (methodMatch.Success)
+                    {
+                        string methodName = methodMatch.Groups[3].Value; // Группа 3 — имя метода
+
+                        // Защита от системных событий WPF (object sender)
+                        if (lines[i].Contains("object sender") || methodName.Contains("_Click") || methodName.Contains("_Mouse"))
+                            continue;
+
+                        if (!privateRenameRules.ContainsKey(methodName) && methodName != "Main" && !blacklist.Contains(methodName))
+                        {
+                            string hexName = GenerateRandomHexName();
+                            privateRenameRules[methodName] = hexName;
+                            Console.WriteLine($"[Private Method] {methodName} -> {hexName} in {Path.GetFileName(file)}");
+                        }
+                        continue; // Строка обработана, переходим к следующей
+                    }
+
+                    // Если это не метод, проверяем на приватную переменную (поле класса)
+                    Match fieldMatch = fieldRegex.Match(lines[i]);
+                    if (fieldMatch.Success)
+                    {
+                        string fieldName = fieldMatch.Groups[3].Value; // Группа 3 — имя переменной
+
+                        if (!privateRenameRules.ContainsKey(fieldName) && !blacklist.Contains(fieldName))
+                        {
+                            string hexName = GenerateRandomHexName();
+                            privateRenameRules[fieldName] = hexName;
+                            Console.WriteLine($"[Private Field] {fieldName} -> {hexName} in {Path.GetFileName(file)}");
+                        }
+                    }
+                }
+
+                // --- ШАГ 2: Построчная замена вызовов и использований ---
+                if (privateRenameRules.Count > 0)
+                {
+                    for (int i = 0; i < lines.Length; i++)
+                    {
+                        string trimmed = lines[i].Trim();
+                        if (trimmed.StartsWith("using ", StringComparison.Ordinal) ||
+                            trimmed.StartsWith("namespace ", StringComparison.Ordinal))
+                            continue;
+
+                        foreach (var rule in privateRenameRules)
+                        {
+                            // Ищем точное слово целиком. 
+                            // Точку (?<!\.) НЕ запрещаем, так как приватные поля часто вызываются как: this.myField или _viewModel.myField
+                            string wordPattern = @"\b" + Regex.Escape(rule.Key) + @"\b";
+
+                            if (Regex.IsMatch(lines[i], wordPattern))
+                            {
+                                lines[i] = Regex.Replace(lines[i], wordPattern, rule.Value);
+                                isModified = true;
+                            }
+                        }
+                    }
+                }
+
+                // Если в файле были изменения — сохраняем
+                if (isModified)
+                {
+                    File.WriteAllLines(file, lines);
+                    Console.WriteLine($"[Saved] Obfuscated private members in: {Path.GetFileName(file)}");
+                }
+            }
+        }
+
+        static void ChangeGlobalPropertiesAndBindings(List<string> files)
+        {
+            // 1. Создаем глобальный словарь для свойств классов
+            var propertyRenameRules = new Dictionary<string, string>();
+
+            // 2. Первый проход: собираем свойства только из файлов кода (.cs)
+            foreach (var file in files.Where(f => f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)))
+            {
+                string[] lines = File.ReadAllLines(file);
+
+                foreach (string line in lines)
+                {
+                    string cleanLine = line.Trim();
+
+                    // Сюда мы будем добавлять строгие условия поиска свойств класса
+                }
+            }
+        }
+
 
 
         static void CollectGlobalStringVariables(List<string> files)
