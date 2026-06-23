@@ -11,24 +11,22 @@ namespace WPF_Hide_Names
 {
     internal class Program
     {
-        // 1. Глобальный словарь: [Старое имя] -> [Новое Hex-имя]
-        // Сюда пойдут имена полей и свойств классов, которые используются в XAML и других файлах
         static Dictionary<string, string> globalRenameRules = new Dictionary<string, string>();
-
-        // Сет для контроля уникальности всех сгенерированных Hex-имен (чтобы не было дублей)
         static HashSet<string> usedHexNames = new HashSet<string>();
 
+        // Расширенный черный список, чтобы обфускатор не трогал важные для WPF и WMI имена
         static HashSet<string> blacklist = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "Class", "Name", "Command", "Binding", "Path", "String", "Main", "App", "Application",
-            "System", "Windows", "Controls", "Data", "Visibility", "True", "False", "Null"
+            "System", "Windows", "Controls", "Data", "Visibility", "True", "False", "Null",
+            "Model", "Category", "Details", "IconData", "Caption", "Version", "Size", "Manufacturer", "Product"
         };
 
         static HashSet<string> methodBlacklist = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-{
-    "Main", "InitializeComponent", "OnStartup", "OnExit", "CanExecute", "Execute",
-    "Convert", "ConvertBack", "Initialize", "OnPropertyChanged", "RefreshUI"
-};
+        {
+            "Main", "InitializeComponent", "OnStartup", "OnExit", "CanExecute", "Execute",
+            "Convert", "ConvertBack", "Initialize", "OnPropertyChanged", "RefreshUI", "OnClosed"
+        };
 
         class AdvancedDeadCodeGenerator
         {
@@ -191,72 +189,53 @@ namespace WPF_Hide_Names
             }
         }
 
-        
+
         static void Main(string[] args)
         {
+            // Твой метод Main остается прежним
             try
             {
                 while (true)
                 {
                     Console.WriteLine("Enter path with dev build:");
                     string appPath = @"C:\Users\lxlyu\source\repos\BulsBust0.1.0";
-                    //string appPath = Console.ReadLine() ?? string.Empty;
 
                     if (!string.IsNullOrWhiteSpace(appPath) && Directory.Exists(appPath))
                     {
-                        // 1. Создаем полный путь для копии проекта по соседству
                         string targetPath = appPath.TrimEnd(Path.DirectorySeparatorChar) + "_Obfuscated";
                         bool needToCopy = true;
 
-                        // ПРОВЕРКА: Если папка уже существует
                         if (Directory.Exists(targetPath))
                         {
                             Console.ForegroundColor = ConsoleColor.Yellow;
                             Console.WriteLine($"\n[Warning] Folder already exists: {targetPath}");
                             Console.ResetColor();
                             Console.Write("Do you want to overwrite it? (y/n): ");
-
                             string answer = Console.ReadLine()?.Trim().ToLower() ?? "n";
                             if (answer == "y" || answer == "yes")
                             {
-                                Console.WriteLine("Deleting old copy...");
                                 Directory.Delete(targetPath, true);
                             }
                             else
                             {
                                 needToCopy = false;
-                                Console.WriteLine("Using existing copy without re-cloning.");
                             }
                         }
 
-                        // Копируем, только если папки не было или пользователь согласился перезаписать
                         if (needToCopy)
                         {
-                            Console.WriteLine($"\n[1/5] Cloning full project structure...");
                             CloneFullProject(appPath, targetPath);
-                            Console.WriteLine("Project successfully cloned!");
                         }
 
-                        // 2. Ищем файлы, которые мы будем модифицировать, внутри копии
-                        Console.WriteLine("\n[2/5] Scanning target files for obfuscation...");
                         List<string> filesToProcess = GetProjectFiles(targetPath);
-                        Console.WriteLine($"Found {filesToProcess.Count} source files (.cs/.xaml) ready for changes.");
 
-                        // 3. ПЕРВЫЙ ПРОХОД: задаём локлаьным переменным хэш имена
-                        Console.WriteLine("\n[3/5] Analyzing files and collecting 'string' variables...");
-                        //ChangeLocalString(filesToProcess);
-
-                        // 4. ВТОРОЙ ПРОХОД: задаём глобальным переменным хэш имена
-                        Console.WriteLine("\n[4/5] Analyzing files and collecting 'methods' variables...");
-                        //ChangeGlobalMethods(filesToProcess);
-
-                        
-                        // 5. ТРЕТИЙ ПРОХОД: Применяем изменения и перезаписываем файлы
-                        Console.WriteLine("\n[5/5] Change bindings name");
+                        // Порядок проходов: сначала чистим приватные члены, потом локальные переменные, потом методы
                         ChangePrivateMembers(filesToProcess);
+                        ChangeLocalString(filesToProcess);
+                        ChangeGlobalMethods(filesToProcess);
 
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine("\nSuccess! Obfuscation step completed. You can check the files now.");
+                        Console.WriteLine("\nSuccess! Obfuscation step completed.");
                         Console.ResetColor();
                         break;
                     }
@@ -275,82 +254,60 @@ namespace WPF_Hide_Names
 
         static void ChangeLocalString(List<string> files)
         {
-
             foreach (var file in files.Where(f => f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)))
             {
                 string[] lines = File.ReadAllLines(file);
-                var cleanedLines = new List<string>();//массив строк фаила
-                bool insideBlockComment = false; //внутри блока?
-                bool isFileModified = false;//были ли изменения фаила?
-                bool isMethodStart = false; //находимся ли мы в методе?
-                int open = 0; //сколько открытых скобочек
-                int close = 0;//сколько закрытых скобочек
+                var cleanedLines = new List<string>();
+                bool insideBlockComment = false;
+                bool isFileModified = false;
+                bool isMethodStart = false;
+                int open = 0;
+                int close = 0;
 
-                var localRenameRules = new Dictionary<string, string>();//локальныи словарь строк
+                // Важно: локальный словарь живет ТОЛЬКО внутри одного метода, 
+                // чтобы не переименовать что-то лишнее в соседних методах.
+                var localRenameRules = new Dictionary<string, string>();
+
                 for (int i = 0; i < lines.Length; i++)
                 {
-                    string originalLine = lines[i];
-                    string line = originalLine;
+                    string line = lines[i];
 
-                    // 1. Обработка многострочного комментария /* ... */ (если мы уже внутри него)
+                    // Стриппинг комментариев (оставляем твою логику)
                     if (insideBlockComment)
                     {
                         isFileModified = true;
                         int blockEndIndex = line.IndexOf("*/");
-                        if (blockEndIndex != -1)
-                        {
-                            line = line.Substring(blockEndIndex + 2);
-                            insideBlockComment = false;
-                        }
-                        else
-                        {
-                            // Если вся строка внутри комметария, заменяем её пустой строкой
-                            cleanedLines.Add(string.Empty);
-                            continue;
-                        }
+                        if (blockEndIndex != -1) { line = line.Substring(blockEndIndex + 2); insideBlockComment = false; }
+                        else { cleanedLines.Add(string.Empty); continue; }
                     }
 
-                    // 2. Поиск начала нового блочного комментария /*
                     int blockStartIndex = line.IndexOf("/*");
                     if (blockStartIndex != -1)
                     {
                         isFileModified = true;
                         int blockEndIndex = line.IndexOf("*/", blockStartIndex + 2);
-                        if (blockEndIndex != -1)
-                        {
-                            line = line.Remove(blockStartIndex, (blockEndIndex + 2) - blockStartIndex);
-                        }
-                        else
-                        {
-                            line = line.Substring(0, blockStartIndex);
-                            insideBlockComment = true;
-                        }
+                        if (blockEndIndex != -1) line = line.Remove(blockStartIndex, (blockEndIndex + 2) - blockStartIndex);
+                        else { line = line.Substring(0, blockStartIndex); insideBlockComment = true; }
                     }
 
-                    // 3. Безопасное удаление однострочного комментария //
+                    // Очистка однострочных комментариев
                     int singleCommentIndex = line.IndexOf("//");
                     while (singleCommentIndex != -1)
                     {
                         string textBeforeComment = line.Substring(0, singleCommentIndex);
                         int quoteCount = textBeforeComment.Count(c => c == '"');
-
-                        if (quoteCount % 2 != 0)
-                        {
-                            singleCommentIndex = line.IndexOf("//", singleCommentIndex + 2);
-                        }
-                        else
-                        {
-                            line = textBeforeComment;
-                            isFileModified = true;
-                            break;
-                        }
+                        if (quoteCount % 2 != 0) singleCommentIndex = line.IndexOf("//", singleCommentIndex + 2);
+                        else { line = textBeforeComment; isFileModified = true; break; }
                     }
 
-
-                    if (Regex.IsMatch(line, @"\bvoid\b") || Regex.IsMatch(line, @"\bTask\b"))
+                    // Отслеживаем границы методов
+                    // Добавили проверку на private/public/internal, чтобы точнее ловить начало методов, а не их вызовы
+                    if (Regex.IsMatch(line, @"\b(void|Task|string|int|bool)\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\("))
                     {
                         isMethodStart = true;
+                        localRenameRules.Clear(); // Очищаем правила для нового метода!
                     }
+
                     if (isMethodStart)
                     {
                         int openInLine = line.Count(c => c == '{');
@@ -358,63 +315,59 @@ namespace WPF_Hide_Names
                         open += openInLine;
                         close += closeInLine;
 
-
-                        string variablePattern = @"\b(string|int)\s+([a-zA-Z_][a-zA-Z0-9_]*)\b(?!\s*\()";
+                        // Улучшенная регулярка для локальных переменных:
+                        // Ищет строго внутри методов объявления типа: "тип имя = значение;" или "type name;"
+                        // Исключает попадание свойств (содержащих get/set) и полей WMI var obj в циклах forech
+                        string variablePattern = @"\b(string|int|bool|var)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*(;|=)";
                         MatchCollection matches = Regex.Matches(line, variablePattern);
 
                         foreach (Match match in matches)
                         {
                             string variableName = match.Groups[2].Value;
 
-                            if (!localRenameRules.ContainsKey(variableName))
+                            // Проверяем, что это не системное слово и не var из foreach узла WMI
+                            if (!blacklist.Contains(variableName) && !localRenameRules.ContainsKey(variableName) && variableName != "obj")
                             {
                                 string hexName = GenerateRandomHexName();
-
                                 localRenameRules[variableName] = hexName;
-
                             }
                         }
 
+                        // Применяем локальные правила замены
                         foreach (var rule in localRenameRules)
                         {
                             string oldName = rule.Key;
                             string newName = rule.Value;
 
-                            // Ищем имя переменной целиком (\b), но только если перед ним НЕТ точки (?<!\.)
-                            string safePattern = @"(?<!\.)\b" + Regex.Escape(oldName) + @"\b";
+                            // Жесткое ограничение: переменная не должна идти после точки (obj.Name) 
+                            // и перед ней не должно быть ключевых слов типа объекта var, obj, или кавычек
+                            string safePattern = @"(?<![\.\""\w])\b" + Regex.Escape(oldName) + @"\b(?![\""\w])";
 
                             if (Regex.IsMatch(line, safePattern))
                             {
                                 line = Regex.Replace(line, safePattern, newName);
-                                isFileModified = true; // Фиксируем, что файл был изменен
+                                isFileModified = true;
                             }
                         }
 
-                        if (open > 0)
+                        if (open > 0 && close >= open)
                         {
-                            if (close == open)
-                            {
-                                isMethodStart = false; // Выключаем режим метода
-                                open = 0;              // Сбрасываем счетчики для следующего метода
-                                close = 0;
-                            }
+                            isMethodStart = false;
+                            open = 0;
+                            close = 0;
+                            localRenameRules.Clear(); // Вышли из метода — забыли локальные переменные
                         }
                     }
 
-
-                    // 4. Добавляем итоговую строку (даже если она стала пустой) в наш список
-                    // TrimEnd убирает пробелы, которые могли остаться перед удаленным комментарием
                     cleanedLines.Add(line.TrimEnd());
                 }
 
-                // 5. Перезаписываем файл, ТОЛЬКО если в нем действительно были комментарии и код изменился
                 if (isFileModified)
                 {
                     File.WriteAllLines(file, cleanedLines);
                     Console.WriteLine($"[File rewrite] {Path.GetFileName(file)}");
                 }
             }
-
         }
 
         static void ChangeGlobalMethods(List<string> files)
@@ -628,22 +581,105 @@ namespace WPF_Hide_Names
 
         static void ChangeGlobalPropertiesAndBindings(List<string> files)
         {
-            // 1. Создаем глобальный словарь для свойств классов
-            var propertyRenameRules = new Dictionary<string, string>();
+            // 1. Черный список системных имен WPF и .NET создаем СРАЗУ
+            var systemProtected = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        "Path", "Convert", "Message", "ToString", "Equals", "GetHashCode", "GetType",
+        "Data", "Value", "Id", "Name", "Text", "Count", "Length", "Item", "Type",
+        "Execute", "CanExecute", "Invoke", "ConvertBack", "CanExecuteChanged",
+        "MainWindow", "Current", "Application", "Resources", "InitializeComponent", "App",
+        "PropertyChanged", "SwitchTab", "Instance", "Tag", "Content", "DataContext", "sender", "e"
+    };
 
-            // 2. Первый проход: собираем свойства только из файлов кода (.cs)
+            var globalRenameRules = new Dictionary<string, string>();
+
+            // ЭТАП 1: АНАЛИЗ И СБОР ИМЕН В .CS ФАЙЛАХ
             foreach (var file in files.Where(f => f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)))
             {
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.WriteLine($"\n[Analyzing File] -> {Path.GetFileName(file)}");
+                Console.ResetColor();
+
                 string[] lines = File.ReadAllLines(file);
+                bool insideClass = false;
+                int classBraceDepth = 0;
 
-                foreach (string line in lines)
+                for (int i = 0; i < lines.Length; i++)
                 {
-                    string cleanLine = line.Trim();
+                    string line = lines[i];
+                    string trimmed = line.Trim();
 
-                    // Сюда мы будем добавлять строгие условия поиска свойств класса
+                    if (trimmed.StartsWith("using ", StringComparison.Ordinal) ||
+                        trimmed.StartsWith("namespace ", StringComparison.Ordinal))
+                        continue;
+
+                    if (trimmed.Contains("class "))
+                    {
+                        insideClass = true;
+                        classBraceDepth = 0;
+
+                        if (trimmed.Contains(": Page") || trimmed.Contains(": Window") || trimmed.Contains(": UserControl") || trimmed.Contains(": Application"))
+                        {
+                            var classMatch = Regex.Match(trimmed, @"class\s+([a-zA-Z_][a-zA-Z0-9_]*)");
+                            if (classMatch.Success)
+                            {
+                                string wpfClassName = classMatch.Groups[1].Value;
+                                systemProtected.Add(wpfClassName); // Защищаем само имя класса страницы/окна!
+                                Console.ForegroundColor = ConsoleColor.Yellow;
+                                Console.WriteLine($"   [Protected WPF Component Class]: {wpfClassName}");
+                                Console.ResetColor();
+                            }
+                        }
+                    }
+
+                    if (insideClass)
+                    {
+                        int openInLine = trimmed.Count(c => c == '{');
+                        int closeInLine = trimmed.Count(c => c == '}');
+
+                        if (classBraceDepth <= 1 && trimmed.StartsWith("public ", StringComparison.Ordinal))
+                        {
+                            // ГЛУБОКАЯ ФИЛЬТРАЦИЯ: Пропускаем события (events), чтобы не сломать INotifyPropertyChanged
+                            if (!trimmed.Contains(" event ") && !trimmed.Contains("\tevent "))
+                            {
+                                // Регулярка теперь ищет ТОЛЬКО свойства, поля и методы (игнорирует объявление класса)
+                                var match = Regex.Match(trimmed, @"\bpublic\s+(?!class\b)(?:[a-zA-Z0-9_<>\?\[\]]+\s+)+([a-zA-Z_][a-zA-Z0-9_]*)\b");
+
+                                if (match.Success)
+                                {
+                                    string publicName = match.Groups[1].Value;
+                                    string fileNameWithoutExt = Path.GetFileNameWithoutExtension(file);
+
+                                    if (publicName != "class" && publicName != fileNameWithoutExt && publicName != "void")
+                                    {
+                                        // ИСПРАВЛЕНИЕ: Пропускаем системные имена, а также типы классов Converter и ViewModel
+                                        if (systemProtected.Contains(publicName) ||
+                                            publicName.EndsWith("Converter", StringComparison.OrdinalIgnoreCase) ||
+                                            publicName.EndsWith("ViewModel", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            Console.ForegroundColor = ConsoleColor.Yellow;
+                                            Console.WriteLine($"   [Skipped System Contract/Type]: {publicName} (Line {i + 1})");
+                                            Console.ResetColor();
+                                        }
+                                        else if (!globalRenameRules.ContainsKey(publicName))
+                                        {
+                                            string obfuscatedName = "_" + Guid.NewGuid().ToString("N").Substring(0, 8);
+                                            globalRenameRules.Add(publicName, obfuscatedName);
+                                            Console.WriteLine($"   [Registered Member]: {publicName} -> {obfuscatedName}");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        classBraceDepth += openInLine - closeInLine;
+                        if (classBraceDepth < 0) insideClass = false;
+                    }
                 }
             }
         }
+
+
 
 
 
@@ -715,23 +751,15 @@ namespace WPF_Hide_Names
         {
             while (true)
             {
-                // Генерируем 2 случайных байта (это даст 4 шестнадцатеричных символа)
                 byte[] buffer = new byte[2];
-                System.Security.Cryptography.RandomNumberGenerator.Fill(buffer);
-
-                // Превращаем в строку вида _0x4f2a
+                RandomNumberGenerator.Fill(buffer);
                 string newName = "_0x" + Convert.ToHexString(buffer).ToLower();
-
-                // Если такое имя ЕЩЕ НЕ использовалось в проекте, занимаем его и возвращаем
-                if (usedHexNames.Add(newName))
-                {
-                    return newName;
-                }
+                if (usedHexNames.Add(newName)) return newName;
             }
-        }        
+        }
         /// <summary>
-                 /// Копирует проект полностью (картинки, ресурсы, настройки), отсекая только кэш-папки.
-                 /// </summary>
+        /// Копирует проект полностью (картинки, ресурсы, настройки), отсекая только кэш-папки.
+        /// </summary>
         static void CloneFullProject(string sourceDir, string targetDir)
         {
             var bannedFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".git", ".vs", "bin", "obj" };
