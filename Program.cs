@@ -17,15 +17,34 @@ namespace WPF_Hide_Names
         // Расширенный черный список, чтобы обфускатор не трогал важные для WPF и WMI имена
         static HashSet<string> blacklist = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
+            // Базовые ключевые слова и системные объекты
             "Class", "Name", "Command", "Binding", "Path", "String", "Main", "App", "Application",
-            "System", "Windows", "Controls", "Data", "Visibility", "True", "False", "Null",
-            "Model", "Category", "Details", "IconData", "Caption", "Version", "Size", "Manufacturer", "Product"
+            "System", "Windows", "Controls", "Data", "Visibility", "True", "False", "Null", "true", "false",
+            "obj", "sender", "e", "DataContext", "Content", "Tag", "Instance", "Item", "Count", "Length",
+            
+            // Критические свойства WPF и интерфейсов (CanExecuteChanged теперь под полной защитой)
+            "Type", "IsEnabled", "Duration", "Opacity", "Color", "Margin", "Padding", "Width", "Height",
+            "Source", "Target", "Property", "Storyboard", "Setter", "Trigger", "Grid", "StackPanel", "Border",
+            "TextBlock", "Button", "ContentControl", "UserControl", "Window", "Canvas", "Image", "Rectangle",
+            "HorizontalAlignment", "VerticalAlignment", "Foreground", "Background", "FontSize", "FontWeight",
+            "FontFamily", "FontStyle", "Mode", "OneWay", "TwoWay", "OneTime", "OneWayToSource", "UpdateSourceTrigger",
+            "TargetProperty", "To", "From", "By", "Key", "X", "Y", "TargetName", "Converter", "ConverterParameter",
+            "TargetType", "Resources", "Styles", "Style", "Value", "Format", "Text", "IsExpanded", "IsSelected",
+            "IsChecked", "IsOpen", "ItemsSource", "SelectedIndex", "SelectedItem", "SelectedValue", "Orientation",
+            "VerticalScrollBarVisibility", "HorizontalScrollBarVisibility", "ClipToBounds", "IsHitTestVisible",
+            "Focusable", "Cursor", "CornerRadius", "SnapsToDevicePixels", "UseLayoutRounding", "StaticResource", "DynamicResource",
+            "CanExecuteChanged", "CanExecute", "Execute", "Show", "GetValue", "SetValue", "RaiseEvent", "AddHandler", "RemoveHandler",
+            "OnPropertyChanged", "GetString","OnValueChanged"
         };
 
         static HashSet<string> methodBlacklist = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "Main", "InitializeComponent", "OnStartup", "OnExit", "CanExecute", "Execute",
-            "Convert", "ConvertBack", "Initialize", "OnPropertyChanged", "RefreshUI", "OnClosed"
+            "Convert", "ConvertBack", "Initialize", "OnPropertyChanged", "RefreshUI", "OnClosed", "Close",
+            "ToString", "Equals", "GetHashCode", "GetType", "Invoke", "CanExecuteChanged","CanExecuteChanged", "CanExecute",
+            "Execute", "Show", "GetValue", "SetValue", "RaiseEvent", "AddHandler", "RemoveHandler", "OnPropertyChanged", "Refresh", "GetString","OnValueChanged",
+            "GetFormat", "SetFormat", "GetText", "SetText", "GetAccent", "SetAccent", "Shutdown", "Start", "Stop", "Clear", "Add", "Remove", "Update",
+
         };
 
         class AdvancedDeadCodeGenerator
@@ -401,7 +420,7 @@ namespace WPF_Hide_Names
                         string methodName = match.Groups[4].Value; // Наше имя метода
 
                         // 1. ПРОВЕРКА: Пропускаем, если метод в черном списке
-                        if (methodBlacklist.Contains(methodName))
+                        if (methodBlacklist.Contains(methodName) || blacklist.Contains(methodName)) // <--- ДОБАВЛЕН blacklist
                             continue;
 
                         // 2. ПРОВЕРКА: Пропускаем обработчики событий WPF окон (всё, что заканчивается на _Click, _KeyDown, _Loaded и т.д.)
