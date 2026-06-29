@@ -217,7 +217,7 @@ namespace WPF_Hide_Names
                 while (true)
                 {
                     Console.WriteLine("Enter path with dev build:");
-                    string appPath = Console.ReadLine().ToString();
+                    string appPath = @"C:\Users\lxlyu\source\repos\BulsBust0.1.0";
 
                     if (!string.IsNullOrWhiteSpace(appPath) && Directory.Exists(appPath))
                     {
