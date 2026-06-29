@@ -14,15 +14,15 @@ namespace WPF_Hide_Names
         static Dictionary<string, string> globalRenameRules = new Dictionary<string, string>();
         static HashSet<string> usedHexNames = new HashSet<string>();
 
-        // Расширенный черный список, чтобы обфускатор не трогал важные для WPF и WMI имена
+        
         static HashSet<string> blacklist = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            // Базовые ключевые слова и системные объекты
+            
             "Class", "Name", "Command", "Binding", "Path", "String", "Main", "App", "Application",
             "System", "Windows", "Controls", "Data", "Visibility", "True", "False", "Null", "true", "false",
             "obj", "sender", "e", "DataContext", "Content", "Tag", "Instance", "Item", "Count", "Length",
             
-            // Критические свойства WPF и интерфейсов (CanExecuteChanged теперь под полной защитой)
+            
             "Type", "IsEnabled", "Duration", "Opacity", "Color", "Margin", "Padding", "Width", "Height",
             "Source", "Target", "Property", "Storyboard", "Setter", "Trigger", "Grid", "StackPanel", "Border",
             "TextBlock", "Button", "ContentControl", "UserControl", "Window", "Canvas", "Image", "Rectangle",
@@ -53,7 +53,7 @@ namespace WPF_Hide_Names
 
             public static string GenerateAdvancedDeadCode()
             {
-                // Случайно выбираем один из 4 стилей генерации кода
+                
                 int style = _rnd.Next(1, 5);
 
                 switch (style)
@@ -66,7 +66,7 @@ namespace WPF_Hide_Names
                 }
             }
 
-            // --- СТИЛЬ 1: Имитация сетевого тайм-аута и резервного сервера ---
+            
             private static string GenerateNetworkFallbackStyle()
             {
                 string vSession = $"_0x{_rnd.Next(1000, 9999):x}";
@@ -74,8 +74,8 @@ namespace WPF_Hide_Names
                 int fakePort = _rnd.Next(8000, 9000);
 
                 var sb = new StringBuilder();
-                sb.AppendLine($"\t\t\t\t// Проверка доступности резервного узла");
-                // Условие всегда false, так как день недели не может быть 8-м
+                sb.AppendLine($"\t\t\t\t
+                
                 sb.AppendLine($"\t\t\t\tif (DateTime.Now.DayOfWeek.ToString() == \"NeverDay\")");
                 sb.AppendLine("\t\t\t\t{");
                 sb.AppendLine($"\t\t\t\t\tstring {vSession} = \"fallback_session_id_\" + Guid.NewGuid().ToString();");
@@ -85,15 +85,15 @@ namespace WPF_Hide_Names
                 return sb.ToString();
             }
 
-            // --- СТИЛЬ 2: Имитация проверки криптографического токена ---
+            
             private static string GenerateCryptoValidationStyle()
             {
                 string vBuffer = $"_0x{_rnd.Next(1000, 9999):x}";
                 string vChecksum = $"_0x{_rnd.Next(1000, 9999):x}";
 
                 var sb = new StringBuilder();
-                sb.AppendLine($"\t\t\t\t// Валидация контрольной суммы пакета метаданных");
-                // Условие всегда false, так как длина Хэша Guid всегда 36 символов
+                sb.AppendLine($"\t\t\t\t
+                
                 sb.AppendLine($"\t\t\t\tif (Guid.NewGuid().ToString().Length < 10)");
                 sb.AppendLine("\t\t\t\t{");
                 sb.AppendLine($"\t\t\t\t\tlong {vChecksum} = 0x{_rnd.Next(10000, 99999):X}L;");
@@ -103,15 +103,15 @@ namespace WPF_Hide_Names
                 return sb.ToString();
             }
 
-            // --- СТИЛЬ 3: Имитация парсинга фейковой конфигурации ---
+            
             private static string GenerateConfigParsingStyle()
             {
                 string vRaw = $"_0x{_rnd.Next(1000, 9999):x}";
                 string vCount = $"_0x{_rnd.Next(1000, 9999):x}";
 
                 var sb = new StringBuilder();
-                sb.AppendLine($"\t\t\t\t// Чтение локального кэша кастомизации окружения");
-                // Условие всегда false, так как Environment.Version никогда не пустой
+                sb.AppendLine($"\t\t\t\t
+                
                 sb.AppendLine($"\t\t\t\tif (Environment.Version.ToString() == string.Empty)");
                 sb.AppendLine("\t\t\t\t{");
                 sb.AppendLine($"\t\t\t\t\tstring {vRaw} = \"node_count={_rnd.Next(10, 100)};mode=silent;theme=dark;\";");
@@ -121,15 +121,15 @@ namespace WPF_Hide_Names
                 return sb.ToString();
             }
 
-            // --- СТИЛЬ 4: Имитация вычисления математических метрик системы ---
+            
             private static string GenerateHardwareMetricsStyle()
             {
                 string vFactor = $"_0x{_rnd.Next(1000, 9999):x}";
                 string vResult = $"_0x{_rnd.Next(1000, 9999):x}";
 
                 var sb = new StringBuilder();
-                sb.AppendLine($"\t\t\t\t// Расчет динамического коэффициента масштабирования UI");
-                // Условие всегда false, так как косинус 180 градусов (-1) никогда не будет равен 5
+                sb.AppendLine($"\t\t\t\t
+                
                 sb.AppendLine($"\t\t\t\tif (Math.Cos(Math.PI) > 5.0)");
                 sb.AppendLine("\t\t\t\t{");
                 sb.AppendLine($"\t\t\t\t\tdouble {vFactor} = Math.Sqrt({_rnd.Next(50, 500)}) / {Environment.ProcessorCount};");
@@ -141,36 +141,36 @@ namespace WPF_Hide_Names
             {
                 var sb = new StringBuilder();
 
-                // Генерируем уникальные имена фейковых переменных
+                
                 string v1 = "_0x" + _rnd.Next(1000, 9999).ToString("x");
                 string v2 = "_0x" + _rnd.Next(1000, 9999).ToString("x");
                 string v3 = "_0x" + _rnd.Next(1000, 9999).ToString("x");
 
-                // Генерируем уникальное ложное условие
+                
                 string falseCondition = GenerateRandomFalseCondition();
 
                 sb.AppendLine($"\t\t\t\tif ({falseCondition})");
                 sb.AppendLine("\t\t\t\t{");
 
-                // Случайный выбор внутренней логики
+                
                 int logicType = _rnd.Next(1, 4);
                 if (logicType == 1)
                 {
-                    // Математический хаос
+                    
                     sb.AppendLine($"\t\t\t\t\tdouble {v1} = Math.Sqrt({_rnd.Next(10, 100)});");
                     sb.AppendLine($"\t\t\t\t\tint {v2} = (int){v1} * {_rnd.Next(2, 10)};");
                     sb.AppendLine($"\t\t\t\t\t{v1} = Math.Pow({v2}, {_rnd.Next(2, 4)});");
                 }
                 else if (logicType == 2)
                 {
-                    // Строковый хаос
+                    
                     sb.AppendLine($"\t\t\t\t\tstring {v1} = \"init_\" + {_rnd.Next(100, 999)};");
                     sb.AppendLine($"\t\t\t\t\tstring {v2} = {v1}.GetHashCode().ToString();");
                     sb.AppendLine($"\t\t\t\t\t{v1} = string.Concat({v1}, \"_\", {v2});");
                 }
                 else
                 {
-                    // Смешанный хаос с циклом
+                    
                     sb.AppendLine($"\t\t\t\t\tint {v1} = {_rnd.Next(5, 20)};");
                     sb.AppendLine($"\t\t\t\t\tfor (int {v2} = 0; {v2} < {v1}; {v2}++)");
                     sb.AppendLine("\t\t\t\t\t{");
@@ -191,16 +191,16 @@ namespace WPF_Hide_Names
                 switch (style)
                 {
                     case 1:
-                        // Пример: (53 * 2) % 2 == 1 -> Всегда false (четное число)
+                        
                         return $"({num1} * 2) % 2 == 1";
                     case 2:
-                        // Пример: Math.Abs(-241) < 0 -> Всегда false
+                        
                         return $"Math.Abs(-{num2}) < 0";
                     case 3:
-                        // Пример: Math.Sin(42) > 2.0 -> Синус не бывает больше 1. Всегда false
+                        
                         return $"Math.Sin({num1}) > 2.0";
                     case 4:
-                        // Пример: "id_421".Length == 0 -> Всегда false
+                        
                         return $"\"id_{num2}\".Length == 0";
                     default:
                         return "1 == 2";
@@ -211,13 +211,13 @@ namespace WPF_Hide_Names
 
         static void Main(string[] args)
         {
-            // Твой метод Main остается прежним
+            
             try
             {
                 while (true)
                 {
                     Console.WriteLine("Enter path with dev build:");
-                    string appPath = @"C:\Users\lxlyu\source\repos\BulsBust0.1.0";
+                    string appPath = Console.ReadLine().ToString();
 
                     if (!string.IsNullOrWhiteSpace(appPath) && Directory.Exists(appPath))
                     {
@@ -248,7 +248,7 @@ namespace WPF_Hide_Names
 
                         List<string> filesToProcess = GetProjectFiles(targetPath);
 
-                        // Порядок проходов: сначала чистим приватные члены, потом локальные переменные, потом методы
+                        
                         ChangePrivateMembers(filesToProcess);
                         ChangeLocalString(filesToProcess);
                         ChangeGlobalMethods(filesToProcess);
@@ -283,15 +283,15 @@ namespace WPF_Hide_Names
                 int open = 0;
                 int close = 0;
 
-                // Важно: локальный словарь живет ТОЛЬКО внутри одного метода, 
-                // чтобы не переименовать что-то лишнее в соседних методах.
+                
+                
                 var localRenameRules = new Dictionary<string, string>();
 
                 for (int i = 0; i < lines.Length; i++)
                 {
                     string line = lines[i];
 
-                    // Стриппинг комментариев (оставляем твою логику)
+                    
                     if (insideBlockComment)
                     {
                         isFileModified = true;
@@ -300,31 +300,27 @@ namespace WPF_Hide_Names
                         else { cleanedLines.Add(string.Empty); continue; }
                     }
 
-                    int blockStartIndex = line.IndexOf("/*");
-                    if (blockStartIndex != -1)
-                    {
-                        isFileModified = true;
-                        int blockEndIndex = line.IndexOf("*/", blockStartIndex + 2);
+                    int blockStartIndex = line.IndexOf("", blockStartIndex + 2);
                         if (blockEndIndex != -1) line = line.Remove(blockStartIndex, (blockEndIndex + 2) - blockStartIndex);
                         else { line = line.Substring(0, blockStartIndex); insideBlockComment = true; }
                     }
 
-                    // Очистка однострочных комментариев
-                    int singleCommentIndex = line.IndexOf("//");
+                    
+                    int singleCommentIndex = line.IndexOf("
                     while (singleCommentIndex != -1)
                     {
                         string textBeforeComment = line.Substring(0, singleCommentIndex);
                         int quoteCount = textBeforeComment.Count(c => c == '"');
-                        if (quoteCount % 2 != 0) singleCommentIndex = line.IndexOf("//", singleCommentIndex + 2);
+                        if (quoteCount % 2 != 0) singleCommentIndex = line.IndexOf("
                         else { line = textBeforeComment; isFileModified = true; break; }
                     }
 
-                    // Отслеживаем границы методов
-                    // Добавили проверку на private/public/internal, чтобы точнее ловить начало методов, а не их вызовы
+                    
+                    
                     if (Regex.IsMatch(line, @"\b(void|Task|string|int|bool)\s+[a-zA-Z_][a-zA-Z0-9_]*\s*\("))
                     {
                         isMethodStart = true;
-                        localRenameRules.Clear(); // Очищаем правила для нового метода!
+                        localRenameRules.Clear(); 
                     }
 
                     if (isMethodStart)
@@ -334,9 +330,9 @@ namespace WPF_Hide_Names
                         open += openInLine;
                         close += closeInLine;
 
-                        // Улучшенная регулярка для локальных переменных:
-                        // Ищет строго внутри методов объявления типа: "тип имя = значение;" или "type name;"
-                        // Исключает попадание свойств (содержащих get/set) и полей WMI var obj в циклах forech
+                        
+                        
+                        
                         string variablePattern = @"\b(string|int|bool|var)\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*(;|=)";
                         MatchCollection matches = Regex.Matches(line, variablePattern);
 
@@ -344,7 +340,7 @@ namespace WPF_Hide_Names
                         {
                             string variableName = match.Groups[2].Value;
 
-                            // Проверяем, что это не системное слово и не var из foreach узла WMI
+                            
                             if (!blacklist.Contains(variableName) && !localRenameRules.ContainsKey(variableName) && variableName != "obj")
                             {
                                 string hexName = GenerateRandomHexName();
@@ -352,14 +348,14 @@ namespace WPF_Hide_Names
                             }
                         }
 
-                        // Применяем локальные правила замены
+                        
                         foreach (var rule in localRenameRules)
                         {
                             string oldName = rule.Key;
                             string newName = rule.Value;
 
-                            // Жесткое ограничение: переменная не должна идти после точки (obj.Name) 
-                            // и перед ней не должно быть ключевых слов типа объекта var, obj, или кавычек
+                            
+                            
                             string safePattern = @"(?<![\.\""\w])\b" + Regex.Escape(oldName) + @"\b(?![\""\w])";
 
                             if (Regex.IsMatch(line, safePattern))
@@ -374,7 +370,7 @@ namespace WPF_Hide_Names
                             isMethodStart = false;
                             open = 0;
                             close = 0;
-                            localRenameRules.Clear(); // Вышли из метода — забыли локальные переменные
+                            localRenameRules.Clear(); 
                         }
                     }
 
@@ -391,39 +387,39 @@ namespace WPF_Hide_Names
 
         static void ChangeGlobalMethods(List<string> files)
         {
-            // Глобальный словарь для методов: [Старое имя] -> [Новое Hex-имя]
+            
             var methodRenameRules = new Dictionary<string, string>();
 
-            // Регулярка ищет объявление метода: модификатор -> тип возвращаемого значения -> имя -> открывающая скобка
-            // Примеры: public void MyMethod(, private static string GetId(
-            // Защита (?!\s*if|\s*switch|\s*while|\s*using) исключает ложные срабатывания на ключевые слова
+            
+            
+            
             string methodDeclarationPattern = @"\b(public|private|internal|protected)\s+(static\s+|virtual\s+|override\s+|async\s+)?([a-zA-Z0-9_<>]+\s+)([a-zA-Z_][a-zA-Z0-9_]*)\s*\((?!\s*if|\s*switch|\s*while|\s*using)";
             Regex declRegex = new Regex(methodDeclarationPattern, RegexOptions.Compiled);
 
-            // --- ПРОХОД 1: Сбор всех методов в проекте ---
+            
             foreach (var file in files.Where(f => f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)))
             {
-                // Читаем файл (здесь ты можешь использовать уже очищенные от комментариев строки)
+                
                 string[] lines = File.ReadAllLines(file);
 
                 foreach (var line in lines)
                 {
                     string trimmed = line.Trim();
 
-                    // Пропускаем директивы usings и namespaces
+                    
                     if (trimmed.StartsWith("using ", StringComparison.Ordinal) ||
                         trimmed.StartsWith("namespace ", StringComparison.Ordinal))
                         continue;
                     Match match = declRegex.Match(line);
                     if (match.Success)
                     {
-                        string methodName = match.Groups[4].Value; // Наше имя метода
+                        string methodName = match.Groups[4].Value; 
 
-                        // 1. ПРОВЕРКА: Пропускаем, если метод в черном списке
-                        if (methodBlacklist.Contains(methodName) || blacklist.Contains(methodName)) // <--- ДОБАВЛЕН blacklist
+                        
+                        if (methodBlacklist.Contains(methodName) || blacklist.Contains(methodName)) 
                             continue;
 
-                        // 2. ПРОВЕРКА: Пропускаем обработчики событий WPF окон (всё, что заканчивается на _Click, _KeyDown, _Loaded и т.д.)
+                        
                         if (methodName.Contains("_Click") ||
                             methodName.Contains("_Mouse") ||
                             methodName.Contains("_Key") ||
@@ -436,13 +432,13 @@ namespace WPF_Hide_Names
                             continue;
                         }
 
-                        // 3. Дополнительная страховка по суффиксам (на случай, если sender переименован)
+                        
                         if (methodName.Contains("_Click") || methodName.Contains("_Mouse") ||
                             methodName.Contains("_Key") || methodName.Contains("_Loaded"))
                         {
                             continue;
                         }
-                        // Только если метод прошел проверки — добавляем в словарь правил
+                        
                         if (!methodRenameRules.ContainsKey(methodName))
                         {
                             string hexName = GenerateRandomHexName();
@@ -453,7 +449,7 @@ namespace WPF_Hide_Names
                 }
             }
 
-            // --- ПРОХОД 2: Тотальная замена вызовов методов по всему проекту ---
+            
             if (methodRenameRules.Count > 0)
             {
                 foreach (var file in files)
@@ -461,13 +457,13 @@ namespace WPF_Hide_Names
                     string content = File.ReadAllText(file);
                     bool isModified = false;
 
-                    // Обработка C# файлов
+                    
                     if (file.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
                     {
                         foreach (var rule in methodRenameRules)
                         {
-                            // Защита (?<!\.) тут НЕ НУЖНА, так как методы часто вызываются через точку (например, obj.MyMethod())
-                            // Но нам нужны четкие границы слова (\b)
+                            
+                            
                             string methodPattern = @"\b" + Regex.Escape(rule.Key) + @"\b";
 
                             if (Regex.IsMatch(content, methodPattern))
@@ -477,7 +473,7 @@ namespace WPF_Hide_Names
                             }
                         }
                     }
-                    // Обработка XAML (на случай если методы привязаны через Event'ы, например Click="Button_Click")
+                    
                     else if (file.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
                     {
                         foreach (var rule in methodRenameRules)
@@ -492,7 +488,7 @@ namespace WPF_Hide_Names
                         }
                     }
 
-                    // Перезаписываем файл, если были изменения
+                    
                     if (isModified)
                     {
                         File.WriteAllText(file, content);
@@ -504,11 +500,11 @@ namespace WPF_Hide_Names
 
         static void ChangePrivateMembers(List<string> files)
         {
-            // 1. Регулярка для приватных МЕТОДОВ: private -> тип -> имя -> скобка (
+            
             string methodPattern = @"\bprivate\s+(static\s+|async\s+)?([a-zA-Z0-9_<>]+\s+)([a-zA-Z_][a-zA-Z0-9_]*)\s*\(";
             Regex methodRegex = new Regex(methodPattern, RegexOptions.Compiled);
 
-            // 2. Регулярка для приватных ПЕРЕМЕННЫХ/ПОЛЕЙ: private -> тип -> имя -> точка с запятой ; (или знак =)
+            
             string fieldPattern = @"\bprivate\s+(static\s+|readonly\s+|const\s+)?([a-zA-Z0-9_<>]+\s+)([a-zA-Z_][a-zA-Z0-9_]*)\s*(;|=)";
             Regex fieldRegex = new Regex(fieldPattern, RegexOptions.Compiled);
 
@@ -517,26 +513,26 @@ namespace WPF_Hide_Names
                 string[] lines = File.ReadAllLines(file);
                 bool isModified = false;
 
-                // Локальный словарь для ВСЕХ приватных членов текущего файла
+                
                 var privateRenameRules = new Dictionary<string, string>();
 
-                // --- ШАГ 1: Построчный сбор приватных методов и переменных ---
+                
                 for (int i = 0; i < lines.Length; i++)
                 {
                     string trimmed = lines[i].Trim();
 
-                    // Пропускаем системные директивы usings и namespaces
+                    
                     if (trimmed.StartsWith("using ", StringComparison.Ordinal) ||
                         trimmed.StartsWith("namespace ", StringComparison.Ordinal))
                         continue;
 
-                    // Сначала проверяем на приватный метод
+                    
                     Match methodMatch = methodRegex.Match(lines[i]);
                     if (methodMatch.Success)
                     {
-                        string methodName = methodMatch.Groups[3].Value; // Группа 3 — имя метода
+                        string methodName = methodMatch.Groups[3].Value; 
 
-                        // Защита от системных событий WPF (object sender)
+                        
                         if (lines[i].Contains("object sender") || methodName.Contains("_Click") || methodName.Contains("_Mouse"))
                             continue;
 
@@ -546,14 +542,14 @@ namespace WPF_Hide_Names
                             privateRenameRules[methodName] = hexName;
                             Console.WriteLine($"[Private Method] {methodName} -> {hexName} in {Path.GetFileName(file)}");
                         }
-                        continue; // Строка обработана, переходим к следующей
+                        continue; 
                     }
 
-                    // Если это не метод, проверяем на приватную переменную (поле класса)
+                    
                     Match fieldMatch = fieldRegex.Match(lines[i]);
                     if (fieldMatch.Success)
                     {
-                        string fieldName = fieldMatch.Groups[3].Value; // Группа 3 — имя переменной
+                        string fieldName = fieldMatch.Groups[3].Value; 
 
                         if (!privateRenameRules.ContainsKey(fieldName) && !blacklist.Contains(fieldName))
                         {
@@ -564,7 +560,7 @@ namespace WPF_Hide_Names
                     }
                 }
 
-                // --- ШАГ 2: Построчная замена вызовов и использований ---
+                
                 if (privateRenameRules.Count > 0)
                 {
                     for (int i = 0; i < lines.Length; i++)
@@ -576,8 +572,8 @@ namespace WPF_Hide_Names
 
                         foreach (var rule in privateRenameRules)
                         {
-                            // Ищем точное слово целиком. 
-                            // Точку (?<!\.) НЕ запрещаем, так как приватные поля часто вызываются как: this.myField или _viewModel.myField
+                            
+                            
                             string wordPattern = @"\b" + Regex.Escape(rule.Key) + @"\b";
 
                             if (Regex.IsMatch(lines[i], wordPattern))
@@ -589,7 +585,7 @@ namespace WPF_Hide_Names
                     }
                 }
 
-                // Если в файле были изменения — сохраняем
+                
                 if (isModified)
                 {
                     File.WriteAllLines(file, lines);
@@ -600,7 +596,7 @@ namespace WPF_Hide_Names
 
         static void ChangeGlobalPropertiesAndBindings(List<string> files)
         {
-            // 1. Черный список системных имен WPF и .NET создаем СРАЗУ
+            
             var systemProtected = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
         "Path", "Convert", "Message", "ToString", "Equals", "GetHashCode", "GetType",
@@ -612,7 +608,7 @@ namespace WPF_Hide_Names
 
             var globalRenameRules = new Dictionary<string, string>();
 
-            // ЭТАП 1: АНАЛИЗ И СБОР ИМЕН В .CS ФАЙЛАХ
+            
             foreach (var file in files.Where(f => f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)))
             {
                 Console.ForegroundColor = ConsoleColor.Cyan;
@@ -643,7 +639,7 @@ namespace WPF_Hide_Names
                             if (classMatch.Success)
                             {
                                 string wpfClassName = classMatch.Groups[1].Value;
-                                systemProtected.Add(wpfClassName); // Защищаем само имя класса страницы/окна!
+                                systemProtected.Add(wpfClassName); 
                                 Console.ForegroundColor = ConsoleColor.Yellow;
                                 Console.WriteLine($"   [Protected WPF Component Class]: {wpfClassName}");
                                 Console.ResetColor();
@@ -658,10 +654,10 @@ namespace WPF_Hide_Names
 
                         if (classBraceDepth <= 1 && trimmed.StartsWith("public ", StringComparison.Ordinal))
                         {
-                            // ГЛУБОКАЯ ФИЛЬТРАЦИЯ: Пропускаем события (events), чтобы не сломать INotifyPropertyChanged
+                            
                             if (!trimmed.Contains(" event ") && !trimmed.Contains("\tevent "))
                             {
-                                // Регулярка теперь ищет ТОЛЬКО свойства, поля и методы (игнорирует объявление класса)
+                                
                                 var match = Regex.Match(trimmed, @"\bpublic\s+(?!class\b)(?:[a-zA-Z0-9_<>\?\[\]]+\s+)+([a-zA-Z_][a-zA-Z0-9_]*)\b");
 
                                 if (match.Success)
@@ -671,7 +667,7 @@ namespace WPF_Hide_Names
 
                                     if (publicName != "class" && publicName != fileNameWithoutExt && publicName != "void")
                                     {
-                                        // ИСПРАВЛЕНИЕ: Пропускаем системные имена, а также типы классов Converter и ViewModel
+                                        
                                         if (systemProtected.Contains(publicName) ||
                                             publicName.EndsWith("Converter", StringComparison.OrdinalIgnoreCase) ||
                                             publicName.EndsWith("ViewModel", StringComparison.OrdinalIgnoreCase))
@@ -704,12 +700,12 @@ namespace WPF_Hide_Names
 
         static void CollectGlobalStringVariables(List<string> files)
         {
-            // 1. Регулярка для полей класса (public string MyVar;)
+            
             string fieldPattern = @"\b(public|private|internal|protected)\s+(static\s+|readonly\s+)?string\s+([a-zA-Z_][a-zA-Z0-9_]*)\b";
             Regex fieldRegex = new Regex(fieldPattern, RegexOptions.Compiled);
 
-            // 2. Регулярка для методов, возвращающих string (public static string MyMethod(args) )
-            // Отличается тем, что после имени ОБЯЗАТЕЛЬНО идут круглые скобки (с аргументами или без)
+            
+            
             string methodPattern = @"\b(public|private|internal|protected)\s+(static\s+|virtual\s+|override\s+)?string\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(";
             Regex methodRegex = new Regex(methodPattern, RegexOptions.Compiled);
 
@@ -726,33 +722,33 @@ namespace WPF_Hide_Names
                     if (trimmed.StartsWith("using ") || trimmed.StartsWith("namespace "))
                         continue;
 
-                    // Трекинг фигурных скобок для определения контекста класса/метода
+                    
                     if (trimmed.Contains("{")) { braceCounter++; }
                     if (trimmed.Contains("}")) { braceCounter--; }
                     insideMethod = braceCounter > 1;
 
-                    // --- ИЩЕМ МЕТОДЫ (Их ищем везде, так как они объявляются на уровне класса) ---
+                    
                     Match methodMatch = methodRegex.Match(line);
                     if (methodMatch.Success)
                     {
-                        string methodName = methodMatch.Groups[3].Value; // 3-я группа — это имя метода
+                        string methodName = methodMatch.Groups[3].Value; 
 
                         if (!blacklist.Contains(methodName) && !globalRenameRules.ContainsKey(methodName))
                         {
                             string hexName = GenerateRandomHexName();
                             globalRenameRules.Add(methodName, hexName);
                             Console.WriteLine($"Found STRING METHOD: '{methodName}' -> '{hexName}'");
-                            continue; // Если нашли метод, поле в этой строке искать уже не нужно
+                            continue; 
                         }
                     }
 
-                    // --- ИЩЕМ ПОЛЯ (Только вне методов) ---
+                    
                     if (!insideMethod)
                     {
                         Match fieldMatch = fieldRegex.Match(line);
                         if (fieldMatch.Success)
                         {
-                            string fieldName = fieldMatch.Groups[3].Value; // 3-я группа — имя поля
+                            string fieldName = fieldMatch.Groups[3].Value; 
 
                             if (!blacklist.Contains(fieldName) && !globalRenameRules.ContainsKey(fieldName))
                             {
@@ -776,9 +772,9 @@ namespace WPF_Hide_Names
                 if (usedHexNames.Add(newName)) return newName;
             }
         }
-        /// <summary>
-        /// Копирует проект полностью (картинки, ресурсы, настройки), отсекая только кэш-папки.
-        /// </summary>
+        
+        
+        
         static void CloneFullProject(string sourceDir, string targetDir)
         {
             var bannedFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".git", ".vs", "bin", "obj" };
@@ -806,9 +802,9 @@ namespace WPF_Hide_Names
             }
         }
 
-        /// <summary>
-        /// Ищет файлы .cs и .xaml внутри созданной копии
-        /// </summary>
+        
+        
+        
         static List<string> GetProjectFiles(string rootPath)
         {
             var foundFiles = new List<string>();
