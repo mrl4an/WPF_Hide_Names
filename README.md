@@ -1,5 +1,4 @@
 # WPF_Hide_Names
-# WPF_Hide_Names
 
 A custom source-code obfuscator designed for **WPF (C#)** applications.
 
